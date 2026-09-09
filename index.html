@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fraction Comparison & Pie Chart Teaching Tool</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Fredoka', "Microsoft JhengHei", Arial, sans-serif;
+            touch-action: manipulation;
+        }
+
+        body {
+            background: linear-gradient(135deg, #a8edd9 0%, #fed6e3 100%);
+            margin: 0;
+            padding: 15px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 標題區域 */
+        header {
+            text-align: center;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            text-shadow: 2px 2px 0px #ffffff;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            color: #57606f;
+            font-size: 15px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        /* 主容器：雙欄配置 */
+        .app-container {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            overflow: hidden;
+        }
+
+        /* 左側控制面板 */
+        .left-panel {
+            width: 380px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 18px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.8);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow-y: auto;
+            border: 3px solid #ffffff;
+        }
+
+        /* 右側圖形展示區 */
+        .right-panel {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.8);
+            overflow-y: auto;
+            overflow-x: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            align-items: stretch;
+            border: 3px solid #ffffff;
+            position: relative;
+        }
+
+        .zoom-controls {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .zoom-btn {
+            background: #ffffff;
+            color: #2f3542;
+            border: 2px solid #dfe4ea;
+            padding: 6px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            box-shadow: 0 3px 0 #ced6e0;
+            cursor: pointer;
+        }
+
+        .zoom-btn:active {
+            transform: translateY(2px) !important;
+            box-shadow: none !important;
+        }
+
+        /* 分數輸入卡片 */
+        .fraction-card {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 12px 15px;
+            margin-bottom: 14px;
+            position: relative;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.04);
+            border: 2px solid #f1f2f6;
+        }
+
+        .fraction-card h3 {
+            margin: 0 0 8px 0;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .integer-input {
+            width: 60px;
+            height: 60px;
+            font-size: 26px;
+            font-weight: 700;
+            text-align: center;
+            border: 3px solid #dfe4ea;
+            border-radius: 14px;
+            background: #f8f9fa;
+            color: #2f3542;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .integer-input:focus {
+            border-color: #ff7f50;
+            background: #ffffff;
+        }
+
+        .fraction-stacked {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .fraction-stacked input {
+            width: 60px;
+            height: 40px;
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            border: 3px solid #dfe4ea;
+            border-radius: 12px;
+            background: #f8f9fa;
+            color: #2f3542;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .fraction-stacked input:focus {
+            border-color: #ff7f50;
+            background: #ffffff;
+        }
+
+        .fraction-line {
+            width: 60px;
+            height: 4px;
+            background-color: #2f3542;
+            border-radius: 2px;
+        }
+
+        /* 3D 按鈕設計 */
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 5px;
+        }
+
+        button {
+            padding: 14px;
+            font-size: 17px;
+            font-weight: 700;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+            outline: none;
+        }
+
+        button:active {
+            transform: translateY(4px) !important;
+            box-shadow: none !important;
+        }
+
+        .btn-add {
+            background: #2ed573;
+            color: white;
+            box-shadow: 0 5px 0 #26af5f, 0 8px 15px rgba(46, 213, 115, 0.3);
+        }
+
+        .btn-remove {
+            background: #ff4757;
+            color: white;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 4px 10px;
+            font-size: 13px;
+            border-radius: 10px;
+            box-shadow: 0 3px 0 #d63031;
+        }
+
+        .btn-draw {
+            background: #1e90ff;
+            color: white;
+            box-shadow: 0 5px 0 #0f62bd, 0 8px 15px rgba(30, 144, 255, 0.3);
+        }
+
+        .btn-lcm {
+            background: #9b59b6;
+            color: white;
+            box-shadow: 0 5px 0 #8e44ad, 0 8px 15px rgba(155, 89, 182, 0.3);
+        }
+
+        .btn-answer {
+            background: #ffa502;
+            color: white;
+            box-shadow: 0 5px 0 #d98200, 0 8px 15px rgba(255, 165, 2, 0.3);
+            display: none;
+            width: 100%;
+        }
+
+        .btn-answer.active {
+            background: #ff6b81;
+            box-shadow: 0 5px 0 #e84118, 0 8px 15px rgba(255, 107, 129, 0.3);
+        }
+
+        /* 標準數學分數 HTML/CSS 樣式 */
+        .math-fraction {
+            display: inline-flex;
+            vertical-align: middle;
+            align-items: center;
+            font-size: 22px;
+            margin: 0 4px;
+        }
+
+        .math-fraction .integer-part {
+            font-size: 26px;
+            font-weight: bold;
+            margin-right: 6px;
+        }
+
+        .math-fraction .frac-part {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            line-height: 1.1;
+        }
+
+        .math-fraction .numerator {
+            border-bottom: 2.5px solid #2f3542;
+            padding: 0 4px;
+            text-align: center;
+            width: 100%;
+            font-weight: 700;
+        }
+
+        .math-fraction .denominator {
+            padding: 0 4px;
+            text-align: center;
+            width: 100%;
+            font-weight: 700;
+        }
+
+        /* 比較結果區 */
+        .comparison-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 3px dashed #dfe4ea;
+        }
+
+        .comparison-result {
+            background: #ffffff;
+            border: 3px solid #ffda79;
+            color: #2f3542;
+            padding: 15px;
+            border-radius: 18px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+            margin-top: 12px;
+            box-shadow: 0 8px 20px rgba(255, 218, 121, 0.3);
+            line-height: 1.8;
+        }
+
+        /* 圓形圖繪製卡片 (橫向佈局) */
+        .canvas-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 15px 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            border: 2px solid #f1f2f6;
+            min-width: max-content;
+        }
+
+        .canvas-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 20px;
+            font-weight: 700;
+            gap: 8px;
+        }
+
+        .canvas-wrapper {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+
+        canvas {
+            background-color: transparent;
+            display: block;
+        }
+
+        .color-tag {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        .lcm-info {
+            font-size: 16px;
+            color: #8e44ad;
+            font-weight: 700;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>分數比較與圓形圖教學工具</h1>
+        <div class="subtitle">Fraction Comparison & Pie Chart Teaching Tool</div>
+    </header>
+
+    <div class="app-container">
+        <!-- 左側面板：輸入區與答案區 -->
+        <div class="left-panel">
+            <div id="fraction-inputs">
+                <!-- 動態生成分數輸入框 -->
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-add" id="btn-add" onclick="addFractionInput()">＋ 新增分數 (最多3個)</button>
+                <button class="btn-draw" onclick="renderDiagramsOnly(false)">顯示圓形圖</button>
+                <button class="btn-lcm" id="btn-lcm" onclick="toggleLCM()">通分細分 (LCM)</button>
+            </div>
+
+            <div class="comparison-section">
+                <button class="btn-answer" id="btn-answer" onclick="toggleAnswer()">揭曉比較答案</button>
+                <div id="comparison-result" class="comparison-result"></div>
+            </div>
+        </div>
+
+        <!-- 右側面板：圓形圖呈現（橫向繪製） -->
+        <div class="right-panel" id="display-area">
+            <div class="zoom-controls">
+                <span>圖形尺寸：</span>
+                <button class="zoom-btn" onclick="changeZoom(-10)">🔍 － 縮小</button>
+                <button class="zoom-btn" onclick="changeZoom(10)">🔍 ＋ 放大</button>
+            </div>
+            <div id="canvas-container" style="display: flex; flex-direction: column; gap: 18px;">
+                <!-- 畫布卡片區 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const colors = ['#FF6B81', '#2ED573', '#FFA502'];
+        let fractionCount = 0;
+        let currentDataList = [];
+        let isLCMActive = false;
+        let isAnswerRevealed = false;
+        let baseRadius = 55;
+
+        window.onload = function() {
+            addFractionInput();
+            addFractionInput();
+            renderDiagramsOnly(false);
+        };
+
+        function changeZoom(delta) {
+            if (baseRadius + delta >= 35 && baseRadius + delta <= 100) {
+                baseRadius += delta;
+                renderDiagramsOnly(isLCMActive);
+            }
+        }
+
+        function addFractionInput() {
+            if (fractionCount >= 3) return;
+            
+            fractionCount++;
+            const container = document.getElementById('fraction-inputs');
+            
+            const card = document.createElement('div');
+            card.className = 'fraction-card';
+            card.id = `card-${fractionCount}`;
+            
+            const color = colors[fractionCount - 1];
+
+            card.innerHTML = `
+                ${fractionCount > 1 ? `<button class="btn-remove" onclick="removeFractionInput(${fractionCount})">✕</button>` : ''}
+                <h3 style="color: ${color}">
+                    <span class="color-tag" style="background-color: ${color};"></span>
+                    分數 ${fractionCount}
+                </h3>
+                <div class="input-group">
+                    <input type="number" id="int-${fractionCount}" class="integer-input" placeholder="整" min="0" value="0">
+                    <div class="fraction-stacked">
+                        <input type="number" id="num-${fractionCount}" placeholder="子" min="0" value="${fractionCount === 1 ? 2 : 1}">
+                        <div class="fraction-line"></div>
+                        <input type="number" id="den-${fractionCount}" placeholder="母" min="1" value="${fractionCount === 1 ? 3 : 5}">
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+            updateAddButtonState();
+        }
+
+        function removeFractionInput(id) {
+            const card = document.getElementById(`card-${id}`);
+            if (card) {
+                card.remove();
+                fractionCount--;
+                reindexCards();
+                updateAddButtonState();
+                renderDiagramsOnly(false);
+            }
+        }
+
+        function reindexCards() {
+            const cards = document.querySelectorAll('.fraction-card');
+            fractionCount = 0;
+            cards.forEach((card, index) => {
+                fractionCount++;
+                card.id = `card-${fractionCount}`;
+                
+                const title = card.querySelector('h3');
+                title.style.color = colors[index];
+                title.innerHTML = `<span class="color-tag" style="background-color: ${colors[index]};"></span>分數 ${fractionCount}`;
+                
+                const removeBtn = card.querySelector('.btn-remove');
+                if (removeBtn) {
+                    removeBtn.setAttribute('onclick', `removeFractionInput(${fractionCount})`);
+                }
+
+                card.querySelector('.integer-input').id = `int-${fractionCount}`;
+                card.querySelectorAll('.fraction-stacked input')[0].id = `num-${fractionCount}`;
+                card.querySelectorAll('.fraction-stacked input')[1].id = `den-${fractionCount}`;
+            });
+        }
+
+        function updateAddButtonState() {
+            const btnAdd = document.getElementById('btn-add');
+            btnAdd.style.display = fractionCount >= 3 ? 'none' : 'block';
+        }
+
+        // 解析並自動規範化帶分數
+        function getFractionData(index) {
+            const rawInteger = parseInt(document.getElementById(`int-${index}`).value) || 0;
+            const rawNumerator = parseInt(document.getElementById(`num-${index}`).value) || 0;
+            const denominator = parseInt(document.getElementById(`den-${index}`).value) || 1;
+
+            if (denominator <= 0) {
+                alert(`分數 ${index} 的分母必須大於 0！`);
+                return null;
+            }
+
+            // 計算總分子
+            const totalNumerator = (rawInteger * denominator) + rawNumerator;
+            const value = totalNumerator / denominator;
+
+            // 自動化簡成規範的帶分數（確保分子小於分母）
+            const normInteger = Math.floor(totalNumerator / denominator);
+            const normNumerator = totalNumerator % denominator;
+
+            return {
+                id: index,
+                integer: normInteger,
+                numerator: normNumerator,
+                denominator: denominator,
+                totalNumerator: totalNumerator,
+                value: value,
+                color: colors[index - 1]
+            };
+        }
+
+        function gcd(a, b) {
+            return b === 0 ? a : gcd(b, a % b);
+        }
+
+        function lcm(a, b) {
+            return (a * b) / gcd(a, b);
+        }
+
+        function getCommonLCM(dataList) {
+            if (dataList.length === 0) return 1;
+            let currentLCM = dataList[0].denominator;
+            for (let i = 1; i < dataList.length; i++) {
+                currentLCM = lcm(currentLCM, dataList[i].denominator);
+            }
+            return currentLCM;
+        }
+
+        // 產生標準數學分數格式 HTML
+        function getFractionHTML(data, customNum = null, customDen = null) {
+            const num = customNum !== null ? customNum : data.numerator;
+            const den = customDen !== null ? customDen : data.denominator;
+
+            // 若分子為 0 且整數 > 0，只顯示整數
+            if (num === 0 && data.integer > 0) {
+                return `<span class="math-fraction"><span class="integer-part">${data.integer}</span></span>`;
+            }
+
+            if (data.integer > 0) {
+                return `
+                    <span class="math-fraction">
+                        <span class="integer-part">${data.integer}</span>
+                        <span class="frac-part">
+                            <span class="numerator">${num}</span>
+                            <span class="denominator">${den}</span>
+                        </span>
+                    </span>
+                `;
+            } else {
+                return `
+                    <span class="math-fraction">
+                        <span class="frac-part">
+                            <span class="numerator">${num}</span>
+                            <span class="denominator">${den}</span>
+                        </span>
+                    </span>
+                `;
+            }
+        }
+
+        function toggleLCM() {
+            isLCMActive = !isLCMActive;
+            const btnLCM = document.getElementById('btn-lcm');
+            btnLCM.innerText = isLCMActive ? "取消通分細分" : "通分細分 (LCM)";
+            renderDiagramsOnly(isLCMActive);
+        }
+
+        // 繪製圓形圖
+        function renderDiagramsOnly(showLCM = false) {
+            currentDataList = [];
+            for (let i = 1; i <= fractionCount; i++) {
+                const data = getFractionData(i);
+                if (!data) return;
+                currentDataList.push(data);
+            }
+
+            const commonLCM = getCommonLCM(currentDataList);
+
+            const canvasContainer = document.getElementById('canvas-container');
+            canvasContainer.innerHTML = '';
+
+            const btnAnswer = document.getElementById('btn-answer');
+            btnAnswer.style.display = currentDataList.length > 1 ? 'block' : 'none';
+
+            const btnLCM = document.getElementById('btn-lcm');
+            btnLCM.style.display = currentDataList.length > 1 ? 'block' : 'none';
+
+            currentDataList.forEach(data => {
+                const card = document.createElement('div');
+                card.className = 'canvas-card';
+                
+                const title = document.createElement('div');
+                title.className = 'canvas-title';
+                title.style.color = data.color;
+
+                let titleHTML = `<span class="color-tag" style="background-color:${data.color}"></span> 分數 ${data.id}： ${getFractionHTML(data)}`;
+                
+                if (showLCM && data.denominator !== commonLCM) {
+                    const expandedNum = data.numerator * (commonLCM / data.denominator);
+                    titleHTML += ` <span class="lcm-info">➔ 通分：${getFractionHTML(data, expandedNum, commonLCM)}</span>`;
+                }
+                
+                title.innerHTML = titleHTML;
+                card.appendChild(title);
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'canvas-wrapper';
+
+                const canvas = document.createElement('canvas');
+                
+                const radius = baseRadius;
+                const circleSpacing = radius * 2 + 20;
+                const totalCircles = Math.ceil(data.totalNumerator / data.denominator) || 1;
+
+                canvas.width = totalCircles * circleSpacing + 20;
+                canvas.height = radius * 2 + 30;
+                
+                wrapper.appendChild(canvas);
+                card.appendChild(wrapper);
+                canvasContainer.appendChild(card);
+
+                drawHorizontalFractionPie(canvas, data, radius, circleSpacing, showLCM ? commonLCM : null);
+            });
+        }
+
+        // Canvas 畫圓函數
+        function drawHorizontalFractionPie(canvas, data, radius, spacing, lcmVal) {
+            const ctx = canvas.getContext('2d');
+            const num = data.totalNumerator;
+            const den = data.denominator;
+            
+            const centerY = canvas.height / 2;
+            let remainingNum = num;
+            const totalCircles = Math.ceil(num / den) || 1;
+
+            for (let i = 0; i < totalCircles; i++) {
+                const centerX = 10 + radius + i * spacing;
+                
+                const fillCount = Math.min(remainingNum, den);
+                remainingNum -= fillCount;
+
+                const sliceAngle = (2 * Math.PI) / den;
+
+                // 1. 繪製塗色扇形
+                for (let j = 0; j < fillCount; j++) {
+                    const startAngle = j * sliceAngle - Math.PI / 2;
+                    const endAngle = (j + 1) * sliceAngle - Math.PI / 2;
+
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                    ctx.closePath();
+                    ctx.fillStyle = data.color;
+                    ctx.fill();
+                }
+
+                // 2. 繪製原本的分數分割線（實線）
+                for (let j = 0; j < den; j++) {
+                    const angle = j * sliceAngle - Math.PI / 2;
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.lineTo(centerX + radius * Math.cos(angle), centerY + radius * Math.sin(angle));
+                    ctx.strokeStyle = '#2f3542';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+
+                // 3. 若開啟 LCM，疊加 LCM 細分線（紫色虛線）
+                if (lcmVal) {
+                    const lcmSliceAngle = (2 * Math.PI) / lcmVal;
+                    ctx.setLineDash([4, 3]);
+                    for (let k = 0; k < lcmVal; k++) {
+                        const angle = k * lcmSliceAngle - Math.PI / 2;
+                        ctx.beginPath();
+                        ctx.moveTo(centerX, centerY);
+                        ctx.lineTo(centerX + radius * Math.cos(angle), centerY + radius * Math.sin(angle));
+                        ctx.strokeStyle = '#8e44ad';
+                        ctx.lineWidth = 1.5;
+                        ctx.stroke();
+                    }
+                    ctx.setLineDash([]);
+                }
+
+                // 4. 繪製圓形的外邊框
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = '#2f3542';
+                ctx.stroke();
+            }
+        }
+
+        function toggleAnswer() {
+            isAnswerRevealed = !isAnswerRevealed;
+            const btnAnswer = document.getElementById('btn-answer');
+            const resultDiv = document.getElementById('comparison-result');
+
+            if (isAnswerRevealed) {
+                btnAnswer.innerText = "隱藏比較答案";
+                btnAnswer.classList.add('active');
+                revealAnswer();
+            } else {
+                btnAnswer.innerText = "揭曉比較答案";
+                btnAnswer.classList.remove('active');
+                resultDiv.style.display = 'none';
+            }
+        }
+
+        function revealAnswer() {
+            if (currentDataList.length < 2) return;
+
+            const sorted = [...currentDataList].sort((a, b) => b.value - a.value);
+            let resultHTML = "<div style='font-size: 16px; font-weight:700; color:#57606f; margin-bottom: 6px;'>比較答案為：</div>";
+
+            for (let i = 0; i < sorted.length; i++) {
+                resultHTML += `<span style="color:${sorted[i].color}">${getFractionHTML(sorted[i])}</span>`;
+                
+                if (i < sorted.length - 1) {
+                    if (sorted[i].value > sorted[i+1].value) {
+                        resultHTML += " <span style='font-size:24px; font-weight:900; color:#2f3542; margin: 0 4px;'>＞</span> ";
+                    } else if (sorted[i].value < sorted[i+1].value) {
+                        resultHTML += " <span style='font-size:24px; font-weight:900; color:#2f3542; margin: 0 4px;'>＜</span> ";
+                    } else {
+                        resultHTML += " <span style='font-size:24px; font-weight:900; color:#2f3542; margin: 0 4px;'>＝</span> ";
+                    }
+                }
+            }
+
+            const resultDiv = document.getElementById('comparison-result');
+            resultDiv.innerHTML = resultHTML;
+            resultDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
